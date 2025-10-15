@@ -32,12 +32,14 @@ impl RenderContext {
     pub fn new() -> Self {
         let backends = wgpu::Backends::from_env().unwrap_or_default();
         let flags = wgpu::InstanceFlags::from_build_config().with_env();
-        let memory_budget_thresholds = wgpu::MemoryBudgetThresholds::default();
+        // krupitskas: Rolling back wgpu to 25.0.0
+        // let memory_budget_thresholds = wgpu::MemoryBudgetThresholds::default();
         let backend_options = wgpu::BackendOptions::from_env_or_default();
         let instance = Instance::new(&wgpu::InstanceDescriptor {
             backends,
             flags,
-            memory_budget_thresholds,
+            // krupitskas: Rolling back wgpu to 25.0.0
+            // memory_budget_thresholds,
             backend_options,
         });
         Self {
@@ -262,11 +264,7 @@ pub fn block_on_wgpu<F: Future>(device: &Device, fut: F) -> F::Output {
     loop {
         match fut.as_mut().poll(&mut context) {
             std::task::Poll::Pending => {
-                /* #{ krupitskas: wgpu 27.0.1 makes wait now more precise
                 device.poll(wgpu::PollType::Wait).unwrap();
-                */
-                device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
-                // #}
             }
             std::task::Poll::Ready(item) => break item,
         }
