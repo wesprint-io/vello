@@ -262,7 +262,11 @@ pub fn block_on_wgpu<F: Future>(device: &Device, fut: F) -> F::Output {
     loop {
         match fut.as_mut().poll(&mut context) {
             std::task::Poll::Pending => {
+                /* #{ krupitskas: wgpu 27.0.1 makes wait now more precise
                 device.poll(wgpu::PollType::Wait).unwrap();
+                */
+                device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
+                // #}
             }
             std::task::Poll::Ready(item) => break item,
         }
